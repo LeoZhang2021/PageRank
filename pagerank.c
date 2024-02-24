@@ -22,22 +22,58 @@ void pagerank(link_t l[], int nLinks, double rank[], int nPages, double delta,
 
 	// FORK PROCESSES HERE
 
-	// power method
-	for(int k=0; k<iterations; k++) {
-		// calculate new values, placing them in s[]
-		for(int i=0; i<nPages; i++) {
-			s[i] = (1.0-delta)/nPages;
-			for(int j=0; j<nLinks; j++)
-				if(l[j].dst == i)
-					s[i] += delta * r[l[j].src] / outDegree[l[j].src];
-		}
+	pid_t* pid = malloc(sizeof(pid_t)*nProcesses);
+	int k = 0;
+	int j = 0;
+	int a = 0;
+	int x = 0;
 
-		// copy s[] to r[] for next iteration
-		for(int i=0; i<nPages; i++)
-			r[i] = s[i];
+	for(int i = 0; i < nProcesses; ++i)
+	{
+		pid[i] = fork();
 	}
 
+	while(k < iterations)
+	{
+		while(j < nPages)
+		{
+			while(a < nLinks)
+			{
+				s[j] += delta * r[l[a].src] / outDegree[l[a].src];
+				++a;
+			}
+			++j;
+		}
+		++k;
+
+		while(x < nPages)
+		{
+			r[x] = s[x];
+			++x;
+		}
+	}
+
+	// // power method
+	// for(int k=0; k<iterations; k++) {
+	// 	// calculate new values, placing them in s[]
+	// 	for(int i=0; i<nPages; i++) {
+	// 		s[i] = (1.0-delta)/nPages;
+	// 		for(int j=0; j<nLinks; j++)
+	// 			if(l[j].dst == i)
+	// 				s[i] += delta * r[l[j].src] / outDegree[l[j].src];
+	// 	}
+
+	// 	// copy s[] to r[] for next iteration
+	// 	for(int i=0; i<nPages; i++)
+	// 		r[i] = s[i];
+	// }
+
 	// JOIN PROCESSES HERE
+
+	for(int i = 0; i < nProcesses; ++i)
+	{
+		wait(NULL);
+	}
 
 	for(int i=0; i<nPages; i++)
 		rank[i] = r[i];
